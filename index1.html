@@ -1,0 +1,856 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="theme-color" content="#061827" />
+  <title>JDVIRTUAL | Dashboard Controle de Nível de Tanque Industrial</title>
+  <style>
+    :root {
+      --bg1: #061827;
+      --bg2: #0b2f4a;
+      --bg3: #0f5f78;
+      --card: rgba(8, 26, 42, 0.88);
+      --card2: rgba(10, 40, 62, 0.78);
+      --line: rgba(130, 220, 255, 0.32);
+      --text: #eef8ff;
+      --muted: #a8c7d8;
+      --green: #1ee682;
+      --red: #ff4e5f;
+      --yellow: #ffd166;
+      --blue: #45c7ff;
+      --cyan: #49f2ff;
+      --orange: #ff9f43;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    }* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: linear-gradient(-45deg, var(--bg1), var(--bg2), var(--bg3), #10243a);
+  background-size: 400% 400%;
+  animation: gradientMove 12s ease infinite;
+  padding: 14px;
+  overflow-x: hidden;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.app {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(2, 16, 28, 0.72);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  margin-bottom: 14px;
+}
+
+.brand h1 {
+  font-size: clamp(1.25rem, 3vw, 2.25rem);
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(73, 242, 255, 0.28);
+}
+
+.brand p {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.clock {
+  min-width: 190px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(73, 242, 255, 0.35);
+  background: #03111f;
+  box-shadow: inset 0 0 18px rgba(73, 242, 255, 0.12), 0 0 22px rgba(73, 242, 255, 0.08);
+  text-align: center;
+}
+
+.clock .time {
+  font-family: Consolas, monospace;
+  color: var(--cyan);
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.clock .date {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 3px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.2fr 0.95fr;
+  gap: 14px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.card h2 {
+  font-size: 1.02rem;
+  margin-bottom: 12px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tag {
+  font-size: 0.72rem;
+  color: #061827;
+  background: var(--cyan);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.tank-wrap {
+  display: grid;
+  grid-template-columns: 1fr 82px;
+  gap: 14px;
+  align-items: center;
+}
+
+.tank {
+  position: relative;
+  height: 410px;
+  min-height: 330px;
+  border: 4px solid rgba(180, 235, 255, 0.72);
+  border-radius: 28px 28px 36px 36px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.015));
+  box-shadow: inset 0 0 28px rgba(255,255,255,0.08), 0 0 26px rgba(69,199,255,0.1);
+}
+
+.water {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(180deg, rgba(73,242,255,0.85), rgba(0,119,255,0.72));
+  transition: height 0.45s linear;
+}
+
+.water::before {
+  content: "";
+  position: absolute;
+  left: -50%;
+  top: -16px;
+  width: 200%;
+  height: 36px;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.75) 0%, rgba(73,242,255,0.55) 42%, transparent 70%);
+  animation: wave 2.2s linear infinite;
+  opacity: 0.75;
+}
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(28%); }
+}
+
+.level-text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.45);
+}
+
+.level-text strong {
+  display: block;
+  font-size: clamp(2.2rem, 7vw, 4rem);
+  line-height: 1;
+}
+
+.level-text span {
+  color: #d7f7ff;
+  font-weight: 700;
+}
+
+.mark {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-top: 2px dashed rgba(255,255,255,0.72);
+  z-index: 7;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+
+.mark.high { bottom: 92.5%; color: var(--red); border-color: var(--red); }
+.mark.low { bottom: 10%; color: var(--yellow); border-color: var(--yellow); }
+
+.mark.alarm {
+  animation: alarmPulse 0.65s ease infinite alternate;
+}
+
+@keyframes alarmPulse {
+  from { filter: drop-shadow(0 0 2px currentColor); opacity: 0.65; }
+  to { filter: drop-shadow(0 0 14px currentColor); opacity: 1; }
+}
+
+.scale {
+  height: 410px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.status-panel {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.status {
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--card2);
+  border: 1px solid rgba(255,255,255,0.09);
+}
+
+.status small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.status b {
+  font-size: 1rem;
+}
+
+.ok { color: var(--green); }
+.bad { color: var(--red); }
+.warn { color: var(--yellow); }
+.info { color: var(--blue); }
+
+.controls {
+  display: grid;
+  gap: 10px;
+}
+
+.mode-row, .button-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+button {
+  border: 0;
+  border-radius: 15px;
+  padding: 13px 10px;
+  font-weight: 900;
+  color: #04111d;
+  background: linear-gradient(135deg, #a5f3ff, #45c7ff);
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+  min-height: 48px;
+}
+
+button:active { transform: scale(0.97); }
+button.active { background: linear-gradient(135deg, #1ee682, #a6ffcb); }
+button.danger { background: linear-gradient(135deg, #ff4e5f, #ffc2c8); }
+button.warning { background: linear-gradient(135deg, #ffd166, #fff2b8); }
+button.secondary { background: linear-gradient(135deg, #d6e6ef, #89b9d2); }
+button:disabled { opacity: 0.42; cursor: not-allowed; filter: grayscale(1); }
+
+.process-line {
+  margin-top: 14px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 12px;
+}
+
+.pipe-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.pipe {
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.15);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.pipe.flow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 200%;
+  background: repeating-linear-gradient(90deg, transparent 0 12px, rgba(73,242,255,0.75) 12px 22px);
+  animation: flow 0.8s linear infinite;
+}
+
+@keyframes flow {
+  to { transform: translateX(-44px); }
+}
+
+.valve {
+  color: #fff;
+  text-align: center;
+  padding: 7px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.09);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.chart-box {
+  height: 260px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.24);
+  border: 1px solid rgba(255,255,255,0.09);
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.kpi {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.kpi small { color: var(--muted); display: block; font-size: 0.72rem; }
+.kpi strong { font-size: 1.13rem; display: block; margin-top: 4px; }
+
+.auto-cycle {
+  display: grid;
+  gap: 8px;
+}
+
+.step {
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.step.current {
+  color: #ffffff;
+  border-color: rgba(73,242,255,0.65);
+  box-shadow: 0 0 18px rgba(73,242,255,0.12);
+  background: rgba(73,242,255,0.09);
+}
+
+.log {
+  height: 352px;
+  overflow-y: auto;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.24);
+  border: 1px solid rgba(255,255,255,0.09);
+  padding: 10px;
+  font-family: Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.log div {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  color: #d8f6ff;
+}
+
+.footer {
+  margin-top: 14px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.82rem;
+  padding: 10px;
+}
+
+@media (max-width: 1050px) {
+  .grid { grid-template-columns: 1fr; }
+  .tank, .scale { height: 360px; }
+  .header { grid-template-columns: 1fr; }
+  .clock { width: 100%; }
+}
+
+@media (max-width: 560px) {
+  body { padding: 9px; }
+  .card, .header { border-radius: 18px; padding: 12px; }
+  .tank-wrap { grid-template-columns: 1fr 58px; }
+  .tank, .scale { height: 335px; }
+  .status-panel, .mode-row, .button-row, .kpis { grid-template-columns: 1fr; }
+  .pipe-row { grid-template-columns: 68px 1fr 68px; font-size: 0.72rem; }
+  .log { height: 260px; }
+}
+
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <div class="brand">
+        <h1>🏭 JDVIRTUAL | Dashboard de Controle de Nível</h1>
+        <p>Sistema supervisório educativo para tanque industrial de 2.000 L com ciclo automático contínuo, controle manual, alarmes LAHH/LALL, tendência e histórico operacional.</p>
+      </div>
+      <div class="clock">
+        <div class="time" id="clockTime">00:00:00</div>
+        <div class="date" id="clockDate">--/--/----</div>
+      </div>
+    </section><section class="grid">
+  <article class="card">
+    <h2>Tanque Industrial <span class="tag">2.000 L</span></h2>
+    <div class="tank-wrap">
+      <div class="tank">
+        <div class="mark high" id="markHigh">LAHH 1850 L</div>
+        <div class="mark low" id="markLow">LALL 200 L</div>
+        <div class="water" id="water"></div>
+        <div class="level-text">
+          <div>
+            <strong id="levelLiters">0 L</strong>
+            <span id="levelPercent">0%</span>
+          </div>
+        </div>
+      </div>
+      <div class="scale">
+        <span>2000</span><span>1750</span><span>1500</span><span>1250</span><span>1000</span><span>750</span><span>500</span><span>250</span><span>0 L</span>
+      </div>
+    </div>
+
+    <div class="status-panel">
+      <div class="status"><small>Bomba</small><b id="pumpStatus" class="ok">🟢 LIGADA</b></div>
+      <div class="status"><small>Processo</small><b id="processStatus" class="info">⬆️ ENCHENDO</b></div>
+      <div class="status"><small>Válvula Entrada</small><b id="inletStatus" class="ok">🔓 ABERTA</b></div>
+      <div class="status"><small>Válvula Saída</small><b id="outletStatus" class="bad">🔒 FECHADA</b></div>
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>Supervisório e Tendência <span class="tag" id="modeTag">AUTO</span></h2>
+    <div class="kpis">
+      <div class="kpi"><small>Nível Atual</small><strong id="kpiLevel">0 L</strong></div>
+      <div class="kpi"><small>Enchimento</small><strong>42 L/s</strong></div>
+      <div class="kpi"><small>Drenagem</small><strong>35 L/s</strong></div>
+    </div>
+    <div class="chart-box">
+      <canvas id="trendChart" width="900" height="320"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="mode-row">
+        <button id="autoBtn" class="active">🤖 Modo Automático</button>
+        <button id="manualBtn" class="secondary">🧑‍🔧 Modo Manual</button>
+      </div>
+      <div class="button-row">
+        <button id="pumpBtn">🟢 Liga/Desliga Bomba</button>
+        <button id="inletBtn">🔓 Abre/Fecha Entrada</button>
+        <button id="outletBtn">🔒 Abre/Fecha Saída</button>
+        <button id="simulateBtn" class="warning">🎲 Simular Variação</button>
+      </div>
+      <button id="resetBtn" class="danger">♻️ Reset - Zerar Tanque</button>
+    </div>
+
+    <div class="process-line">
+      <div class="pipe-row">
+        <div class="valve" id="inValveBox">Entrada</div>
+        <div class="pipe" id="inPipe"></div>
+        <div class="valve">Tanque</div>
+      </div>
+      <div class="pipe-row">
+        <div class="valve">Tanque</div>
+        <div class="pipe" id="outPipe"></div>
+        <div class="valve" id="outValveBox">Saída</div>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>Ciclo Automático e Histórico <span class="tag">SCADA</span></h2>
+    <div class="auto-cycle" id="cycleSteps">
+      <div class="step" data-step="inicio"><b>1. Início</b> — Sistema ligado: bomba ligada, entrada aberta e saída fechada.</div>
+      <div class="step" data-step="enchimento"><b>2. Enchimento</b> — Nível &lt; LAHH: bomba ligada, entrada aberta e saída fechada.</div>
+      <div class="step" data-step="parada"><b>3. Parada Enchimento</b> — Nível ≥ LAHH: bomba desligada, entrada fechada e saída aberta.</div>
+      <div class="step" data-step="drenagem"><b>4. Drenagem</b> — Nível &gt; LALL: bomba desligada, entrada fechada e saída aberta.</div>
+      <div class="step" data-step="reinicio"><b>5. Reinício</b> — Nível ≤ LALL: bomba ligada, entrada aberta e saída fechada.</div>
+    </div>
+    <br />
+    <h2>Histórico Dinâmico</h2>
+    <div class="log" id="log"></div>
+  </article>
+</section>
+
+<div class="footer">JDVIRTUAL CONSULTORIA EMPREENDIMENTOS & AUTOMAÇÃO LTDA • Simulador educativo de automação industrial • LAHH = 1850 L • LALL = 200 L</div>
+
+  </main>  <script>
+    const CAPACITY = 2000;
+    const LAHH = 1850;
+    const LALL = 200;
+    const FILL_RATE = 42;
+    const DRAIN_RATE = 35;
+    const TICK_MS = 1000;
+    const MAX_POINTS = 70;
+
+    let state = {
+      level: 0,
+      auto: true,
+      pump: true,
+      inlet: true,
+      outlet: false,
+      process: "ENCHENDO",
+      step: "inicio",
+      elapsed: 0,
+      history: []
+    };
+
+    const el = {
+      water: document.getElementById("water"),
+      levelLiters: document.getElementById("levelLiters"),
+      levelPercent: document.getElementById("levelPercent"),
+      kpiLevel: document.getElementById("kpiLevel"),
+      pumpStatus: document.getElementById("pumpStatus"),
+      processStatus: document.getElementById("processStatus"),
+      inletStatus: document.getElementById("inletStatus"),
+      outletStatus: document.getElementById("outletStatus"),
+      modeTag: document.getElementById("modeTag"),
+      autoBtn: document.getElementById("autoBtn"),
+      manualBtn: document.getElementById("manualBtn"),
+      pumpBtn: document.getElementById("pumpBtn"),
+      inletBtn: document.getElementById("inletBtn"),
+      outletBtn: document.getElementById("outletBtn"),
+      simulateBtn: document.getElementById("simulateBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      inPipe: document.getElementById("inPipe"),
+      outPipe: document.getElementById("outPipe"),
+      inValveBox: document.getElementById("inValveBox"),
+      outValveBox: document.getElementById("outValveBox"),
+      log: document.getElementById("log"),
+      markHigh: document.getElementById("markHigh"),
+      markLow: document.getElementById("markLow"),
+      cycleSteps: document.getElementById("cycleSteps"),
+      chart: document.getElementById("trendChart"),
+      clockTime: document.getElementById("clockTime"),
+      clockDate: document.getElementById("clockDate")
+    };
+
+    const ctx = el.chart.getContext("2d");
+
+    function nowTime() {
+      return new Date().toLocaleTimeString("pt-BR", { hour12: false });
+    }
+
+    function addLog(message, type = "info") {
+      const icon = type === "alarm" ? "🚨" : type === "cmd" ? "⚙️" : type === "ok" ? "✅" : "ℹ️";
+      const item = document.createElement("div");
+      item.innerHTML = `<span style="color:#49f2ff">${nowTime()}</span> ${icon} ${message}`;
+      el.log.prepend(item);
+      while (el.log.children.length > 80) el.log.removeChild(el.log.lastChild);
+    }
+
+    function clampLevel(value) {
+      return Math.max(0, Math.min(CAPACITY, value));
+    }
+
+    function setAutoOutputs() {
+      if (state.level >= LAHH) {
+        state.pump = false;
+        state.inlet = false;
+        state.outlet = true;
+        state.process = "DRENANDO";
+        state.step = "parada";
+      } else if (state.level <= LALL) {
+        state.pump = true;
+        state.inlet = true;
+        state.outlet = false;
+        state.process = "ENCHENDO";
+        state.step = state.elapsed < 2 ? "inicio" : "reinicio";
+      } else if (state.outlet) {
+        state.pump = false;
+        state.inlet = false;
+        state.outlet = true;
+        state.process = "DRENANDO";
+        state.step = "drenagem";
+      } else {
+        state.pump = true;
+        state.inlet = true;
+        state.outlet = false;
+        state.process = "ENCHENDO";
+        state.step = "enchimento";
+      }
+    }
+
+    function processTick() {
+      const before = state.level;
+
+      if (state.auto) setAutoOutputs();
+
+      if (state.pump && state.inlet && !state.outlet) {
+        state.level = clampLevel(state.level + FILL_RATE);
+        state.process = "ENCHENDO";
+      } else if (state.outlet && !state.inlet) {
+        state.level = clampLevel(state.level - DRAIN_RATE);
+        state.process = "DRENANDO";
+      } else if (state.inlet && state.outlet) {
+        state.level = clampLevel(state.level + FILL_RATE - DRAIN_RATE);
+        state.process = "BALANÇO";
+      } else {
+        state.process = "PARADO";
+      }
+
+      if (before < LAHH && state.level >= LAHH) addLog("LAHH atingido: parada do enchimento, bomba desligada, entrada fechada e saída aberta.", "alarm");
+      if (before > LALL && state.level <= LALL) addLog("LALL atingido: reinício automático, bomba ligada, entrada aberta e saída fechada.", "alarm");
+
+      state.elapsed++;
+      state.history.push({ t: state.elapsed, level: state.level });
+      if (state.history.length > MAX_POINTS) state.history.shift();
+
+      render();
+    }
+
+    function render() {
+      const percent = (state.level / CAPACITY) * 100;
+      el.water.style.height = `${percent}%`;
+      el.levelLiters.textContent = `${Math.round(state.level)} L`;
+      el.levelPercent.textContent = `${percent.toFixed(1)}%`;
+      el.kpiLevel.textContent = `${Math.round(state.level)} L`;
+
+      el.pumpStatus.textContent = state.pump ? "🟢 LIGADA" : "🔴 DESLIGADA";
+      el.pumpStatus.className = state.pump ? "ok" : "bad";
+
+      el.inletStatus.textContent = state.inlet ? "🔓 ABERTA" : "🔒 FECHADA";
+      el.inletStatus.className = state.inlet ? "ok" : "bad";
+
+      el.outletStatus.textContent = state.outlet ? "🔓 ABERTA" : "🔒 FECHADA";
+      el.outletStatus.className = state.outlet ? "ok" : "bad";
+
+      const processMap = {
+        ENCHENDO: ["⬆️ ENCHENDO", "info"],
+        DRENANDO: ["💧 DRENANDO", "warn"],
+        PARADO: ["⚪ PARADO", "bad"],
+        BALANÇO: ["↕️ BALANÇO", "warn"]
+      };
+      el.processStatus.textContent = processMap[state.process][0];
+      el.processStatus.className = processMap[state.process][1];
+
+      el.modeTag.textContent = state.auto ? "AUTO" : "MANUAL";
+      el.autoBtn.classList.toggle("active", state.auto);
+      el.manualBtn.classList.toggle("active", !state.auto);
+      el.pumpBtn.disabled = state.auto;
+      el.inletBtn.disabled = state.auto;
+      el.outletBtn.disabled = state.auto;
+
+      el.inPipe.classList.toggle("flow", state.inlet && state.pump);
+      el.outPipe.classList.toggle("flow", state.outlet);
+      el.inValveBox.textContent = state.inlet ? "Entrada Aberta" : "Entrada Fechada";
+      el.outValveBox.textContent = state.outlet ? "Saída Aberta" : "Saída Fechada";
+
+      el.markHigh.classList.toggle("alarm", state.level >= LAHH);
+      el.markLow.classList.toggle("alarm", state.level <= LALL);
+
+      document.querySelectorAll(".step").forEach(step => {
+        step.classList.toggle("current", step.dataset.step === state.step);
+      });
+
+      drawChart();
+    }
+
+    function drawChart() {
+      const w = el.chart.width;
+      const h = el.chart.height;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+      ctx.fillRect(0, 0, w, h);
+
+      const pad = 42;
+      const gw = w - pad * 2;
+      const gh = h - pad * 2;
+
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad + (gh / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(w - pad, y);
+        ctx.stroke();
+      }
+
+      function yFor(level) { return pad + gh - (level / CAPACITY) * gh; }
+
+      ctx.setLineDash([8, 6]);
+      ctx.strokeStyle = "rgba(255,78,95,0.9)";
+      ctx.beginPath();
+      ctx.moveTo(pad, yFor(LAHH));
+      ctx.lineTo(w - pad, yFor(LAHH));
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255,209,102,0.9)";
+      ctx.beginPath();
+      ctx.moveTo(pad, yFor(LALL));
+      ctx.lineTo(w - pad, yFor(LALL));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.font = "18px Segoe UI";
+      ctx.fillText("2000 L", 8, pad + 6);
+      ctx.fillText("0 L", 18, h - pad + 6);
+      ctx.fillStyle = "rgba(255,78,95,0.95)";
+      ctx.fillText("LAHH", w - pad - 52, yFor(LAHH) - 8);
+      ctx.fillStyle = "rgba(255,209,102,0.95)";
+      ctx.fillText("LALL", w - pad - 52, yFor(LALL) - 8);
+
+      if (state.history.length < 2) return;
+
+      ctx.strokeStyle = "rgba(73,242,255,0.98)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      state.history.forEach((p, i) => {
+        const x = pad + (i / (MAX_POINTS - 1)) * gw;
+        const y = yFor(p.level);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      const last = state.history[state.history.length - 1];
+      const lx = pad + ((state.history.length - 1) / (MAX_POINTS - 1)) * gw;
+      const ly = yFor(last.level);
+      ctx.fillStyle = "#49f2ff";
+      ctx.beginPath();
+      ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function updateClock() {
+      const d = new Date();
+      el.clockTime.textContent = d.toLocaleTimeString("pt-BR", { hour12: false });
+      el.clockDate.textContent = d.toLocaleDateString("pt-BR", {
+        weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"
+      });
+    }
+
+    el.autoBtn.addEventListener("click", () => {
+      state.auto = true;
+      setAutoOutputs();
+      addLog("Modo automático ativado. Ciclo contínuo em operação.", "cmd");
+      render();
+    });
+
+    el.manualBtn.addEventListener("click", () => {
+      state.auto = false;
+      state.step = "";
+      addLog("Modo manual ativado. Controle independente liberado.", "cmd");
+      render();
+    });
+
+    el.pumpBtn.addEventListener("click", () => {
+      if (state.auto) return;
+      state.pump = !state.pump;
+      addLog(`Bomba ${state.pump ? "ligada" : "desligada"} manualmente.`, "cmd");
+      render();
+    });
+
+    el.inletBtn.addEventListener("click", () => {
+      if (state.auto) return;
+      state.inlet = !state.inlet;
+      addLog(`Válvula de entrada ${state.inlet ? "aberta" : "fechada"} manualmente.`, "cmd");
+      render();
+    });
+
+    el.outletBtn.addEventListener("click", () => {
+      if (state.auto) return;
+      state.outlet = !state.outlet;
+      addLog(`Válvula de saída ${state.outlet ? "aberta" : "fechada"} manualmente.`, "cmd");
+      render();
+    });
+
+    el.simulateBtn.addEventListener("click", () => {
+      const variation = Math.round((Math.random() * 220) - 90);
+      state.level = clampLevel(state.level + variation);
+      state.history.push({ t: ++state.elapsed, level: state.level });
+      if (state.history.length > MAX_POINTS) state.history.shift();
+      addLog(`Simulação aplicada: variação de ${variation > 0 ? "+" : ""}${variation} L.`, "cmd");
+      render();
+    });
+
+    el.resetBtn.addEventListener("click", () => {
+      state.level = 0;
+      state.elapsed = 0;
+      state.history = [];
+      state.auto = true;
+      state.pump = true;
+      state.inlet = true;
+      state.outlet = false;
+      state.process = "ENCHENDO";
+      state.step = "inicio";
+      addLog("Reset executado: tanque zerado e modo automático reiniciado.", "cmd");
+      render();
+    });
+
+    addLog("Sistema iniciado em modo automático padrão.", "ok");
+    updateClock();
+    render();
+    setInterval(updateClock, 1000);
+    setInterval(processTick, TICK_MS);
+  </script></body>
+</html>
